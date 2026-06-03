@@ -1,0 +1,49 @@
+# Deepfake Audio Detector Configuration
+# All hyperparameters in one place
+
+# Data configuration
+data:
+  sample_rate: 16000
+  n_mfcc: 40
+  n_fft: 2048
+  hop_length: 512
+  duration: 3 # seconds
+
+# Model configuration
+model:
+  type: "ensemble" # Options: cnn, lstm, ensemble
+  cnn:
+    channels: [32, 64, 128]
+    kernel_size: 3
+    dropout: 0.3
+  lstm:
+    hidden_size: 128
+    num_layers: 2
+    dropout: 0.3
+
+# Training configuration
+training:
+  batch_size: 32
+  epochs: 50
+  learning_rate: 0.001
+  optimizer: "adam"
+  loss_function: "bce_with_logits"
+  validation_split: 0.2
+  early_stopping_patience: 10
+
+# Evaluation configuration
+evaluation:
+  metrics:
+    - "auc"
+    - "eer"
+    - "f1"
+  threshold: 0.5
+
+# Paths
+paths:
+  data_dir: "./data"
+  model_dir: "./models"
+  logs_dir: "./logs"
+
+# Reproducibility
+seed: 42
