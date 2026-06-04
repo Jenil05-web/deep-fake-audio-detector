@@ -67,7 +67,14 @@ class PathsConfig(BaseModel):
     data_dir: str = "./data"
     model_dir: str = "./models"
     logs_dir: str = "./logs"
-
+    @property
+    def data_raw(self):       return Path(self.data_dir) / "raw"
+    @property
+    def data_processed(self): return Path(self.data_dir) / "processed"
+    @property
+    def data_features(self):  return Path(self.data_dir) / "features"
+    @property
+    def model_weights(self):  return Path(self.model_dir) / "weights"
 
 class Config(BaseModel):
     """Main configuration model."""
@@ -107,3 +114,5 @@ def load_config(config_path: Optional[str] = None) -> Config:
         config_dict = yaml.safe_load(f)
 
     return Config(**config_dict)
+# Alias so both names work
+get_config = load_config
