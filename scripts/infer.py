@@ -49,9 +49,9 @@ def load_weights(model, path: Path, name: str):
     return model
 
 
-def preprocess_audio(path: Path, sr: int = 16000) -> np.ndarray:
+def preprocess_audio(path: Path, sr: int = 16000, duration: float = None) -> np.ndarray:
     """Load, resample, mono, peak-normalize."""
-    audio, _ = librosa.load(str(path), sr=sr, mono=True)
+    audio, _ = librosa.load(str(path), sr=sr, mono=True, duration=duration)
     peak = np.abs(audio).max()
     if peak > 1e-8:
         audio = audio / peak
@@ -124,7 +124,7 @@ def predict(audio_path: str, threshold: float = 0.65) -> dict:
     ensemble = build_inference_ensemble(cfg, threshold)
 
     # Preprocess audio
-    audio    = preprocess_audio(path, cfg.data.sample_rate)
+    audio    = preprocess_audio(path, cfg.data.sample_rate, cfg.data.duration)
     duration = len(audio) / cfg.data.sample_rate
 
     # Extract features

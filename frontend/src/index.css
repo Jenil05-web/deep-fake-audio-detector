@@ -1,0 +1,114 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #040406;
+    color: #e2e8f0;
+    font-family: 'Inter', sans-serif;
+  }
+}
+
+/* Custom Scrollbar for forensic aesthetics */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #040406;
+}
+::-webkit-scrollbar-thumb {
+  background: #181b24;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #00ff8844;
+}
+
+/* Cyber grid background with scanlines */
+.cyber-grid {
+  position: relative;
+  background-image: 
+    linear-gradient(rgba(24, 27, 36, 0.25) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(24, 27, 36, 0.25) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.cyber-grid::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, transparent 60%, rgba(4, 4, 6, 0.95));
+  z-index: 1;
+}
+
+/* CRT monitor effect (Scanlines) */
+.crt-effect {
+  position: relative;
+  overflow: hidden;
+}
+
+.crt-effect::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.2) 50%
+  );
+  background-size: 100% 4px;
+  z-index: 99;
+  pointer-events: none;
+}
+
+/* Glassmorphism panel styling */
+.glass-panel {
+  background: rgba(11, 12, 16, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(24, 27, 36, 0.8);
+}
+
+.glass-panel-hover:hover {
+  border-color: rgba(0, 255, 136, 0.25);
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.05);
+}
+
+.glass-panel-hover-red:hover {
+  border-color: rgba(255, 51, 102, 0.25);
+  box-shadow: 0 0 20px rgba(255, 51, 102, 0.05);
+}
+
+/* Ambient neon lighting */
+.neon-glow-green {
+  filter: drop-shadow(0 0 8px rgba(0, 255, 136, 0.4));
+}
+
+.neon-glow-red {
+  filter: drop-shadow(0 0 8px rgba(255, 51, 102, 0.4));
+}
+
+.neon-glow-blue {
+  filter: drop-shadow(0 0 8px rgba(0, 229, 255, 0.4));
+}
+
+/* Progress circular animation rules */
+.progress-ring__circle {
+  transition: stroke-dashoffset 0.35s;
+  transform: rotate(-90deg);
+  transform-origin: 50% 50%;
+}
+
+/* Glow lines overlay */
+.glow-spotlight-green {
+  background: radial-gradient(600px circle at var(--x, 0px) var(--y, 0px), rgba(0, 255, 136, 0.08), transparent 40%);
+}
+
+.glow-spotlight-red {
+  background: radial-gradient(600px circle at var(--x, 0px) var(--y, 0px), rgba(255, 51, 102, 0.08), transparent 40%);
+}

@@ -84,8 +84,8 @@ class Predictor:
         cfg = self.cfg
         sr  = cfg.data.sample_rate
 
-        # Load and normalize audio
-        audio, _ = librosa.load(audio_path, sr=sr, mono=True)
+        # Load and normalize audio - limit duration to config (e.g. 3s) to prevent timeouts
+        audio, _ = librosa.load(audio_path, sr=sr, mono=True, duration=cfg.data.duration)
         peak = np.abs(audio).max()
         if peak > 1e-8:
             audio = audio / peak
