@@ -33,11 +33,6 @@ except ImportError:
 
 
 class Predictor:
-    """
-    Loads all model weights once and exposes a single predict() method.
-    Thread-safe for concurrent FastAPI requests (inference is read-only).
-    """
-
     def __init__(self):
         self.cfg      = get_config()
         self.device   = torch.device("cpu")
@@ -90,6 +85,11 @@ class Predictor:
         if peak > 1e-8:
             audio = audio / peak
 
+        # ── Limit to first 5 seconds — keeps inference fast ──────────────────
+        max_samples = 5 * sr
+        if len(audio) > max_samples:
+            audio = audio[:max_samples]
+
         duration = len(audio) / sr
 
         # Extract features
@@ -117,5 +117,4 @@ class Predictor:
 
 @lru_cache(maxsize=1)
 def get_predictor() -> Predictor:
-    """Return singleton Predictor instance — loaded once, reused forever."""
     return Predictor()

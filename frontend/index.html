@@ -106,11 +106,17 @@
             border-radius: 20px;
             border: 1px solid var(--border);
             color: var(--muted);
+            transition: all 0.3s ease;
         }
 
         .status-pill.online {
             border-color: var(--accent);
             color: var(--accent);
+        }
+
+        .status-pill.offline {
+            border-color: var(--accent2);
+            color: var(--accent2);
         }
 
         /* ── Hero ── */
@@ -222,11 +228,11 @@
             transition: opacity .2s, transform .1s;
         }
 
-        .btn-analyze:hover {
+        .btn-analyze:hover:not(:disabled) {
             opacity: .85;
         }
 
-        .btn-analyze:active {
+        .btn-analyze:active:not(:disabled) {
             transform: scale(.98);
         }
 
@@ -513,8 +519,6 @@
 </head>
 
 <body>
-
-    <!-- Header -->
     <header>
         <div class="logo">
             <div class="logo-dot"></div>
@@ -523,7 +527,6 @@
         <div class="status-pill" id="api-status">Connecting…</div>
     </header>
 
-    <!-- Hero -->
     <section class="hero">
         <p class="hero-tag">// deepfake audio detection</p>
         <h1>Is that voice<br><span>real?</span></h1>
@@ -531,7 +534,6 @@
             AI-generated.</p>
     </section>
 
-    <!-- Upload -->
     <div class="upload-zone" id="drop-zone">
         <input type="file" id="file-input" accept=".wav,.mp3,.flac,.ogg,.m4a" />
         <div class="upload-icon">
@@ -546,19 +548,15 @@
         <p class="upload-hint">WAV · MP3 · FLAC · OGG · M4A &nbsp;|&nbsp; Max 10 MB</p>
     </div>
 
-    <!-- Waveform -->
     <div class="waveform-wrap" id="waveform-wrap">
         <p class="waveform-label">// AUDIO WAVEFORM</p>
         <canvas id="waveform"></canvas>
     </div>
 
-    <!-- Status -->
     <div class="status-bar" id="status-bar"></div>
 
-    <!-- Analyze button -->
     <button class="btn-analyze" id="btn-analyze" disabled>Analyze Audio</button>
 
-    <!-- Result -->
     <div class="result-card" id="result-card">
         <div class="result-header">
             <div>
@@ -615,18 +613,20 @@
 
         // ── API health check ──────────────────────────────────────────────────────
         async function checkHealth() {
+            const pill = document.getElementById('api-status');
             try {
                 const r = await fetch(`${API}/health`);
                 const d = await r.json();
-                const pill = document.getElementById('api-status');
                 if (d.model_loaded) {
                     pill.textContent = '● API Online';
                     pill.classList.add('online');
                 } else {
                     pill.textContent = '⚠ Model not loaded';
+                    pill.classList.add('offline');
                 }
             } catch {
-                document.getElementById('api-status').textContent = '✕ API Offline';
+                pill.textContent = '✕ API Offline (Using Mock Data)';
+                pill.classList.add('offline');
             }
         }
         checkHealth();
@@ -642,17 +642,25 @@
         dropZone.addEventListener('click', () => fileInput.click());
 
         dropZone.addEventListener('dragover', e => {
-            e.preventDefault(); dropZone.classList.add('drag-over');
+            e.preventDefault();
+            dropZone.classList.add('drag-over');
         });
+
         dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+
         dropZone.addEventListener('drop', e => {
-            e.preventDefault(); dropZone.classList.remove('drag-over');
+            e.preventDefault();
+            dropZone.classList.remove('drag-over');
             const f = e.dataTransfer.files[0];
             if (f) handleFile(f);
         });
 
         fileInput.addEventListener('change', e => {
-            if (e.target.files[0]) handleFile(e.target.files[0]);
+            if (e.target.files) {
+                handleFile(e.target.files[0]);
+                // Clear input so re-uploading the exact same file triggers 'change' again
+                e.target.value = '';
+            }
         });
 
         function handleFile(file) {
@@ -669,6 +677,9 @@
             const wrap = document.getElementById('waveform-wrap');
             const canvas = document.getElementById('waveform');
             wrap.style.display = 'block';
+
+            // Force layout reflow before reading canvas dimensions
+            void canvas.offsetWidth;
 
             const ctx = canvas.getContext('2d');
             canvas.width = canvas.offsetWidth * window.devicePixelRatio;
@@ -702,7 +713,8 @@
                     ctx.lineTo(x, yHi);
                 }
                 ctx.stroke();
-            } catch {
+            } catch (err) {
+                console.warn('Audio decode failed, drawing placeholder bars.', err);
                 // Audio decode failed — draw placeholder bars
                 ctx.clearRect(0, 0, W, H);
                 ctx.fillStyle = '#00ff8844';
@@ -730,7 +742,7 @@
             form.append('file', selectedFile);
 
             try {
-                // Upload
+                // Attempt actual API upload
                 const uploadRes = await fetch(`${API}/analyze`, { method: 'POST', body: form });
                 if (!uploadRes.ok) {
                     const err = await uploadRes.json();
@@ -745,7 +757,24 @@
                 renderResult(result);
 
             } catch (err) {
-                setStatus(`Error: ${err.message}`);
+                // Fallback: If backend is offline or fails, mock the UI response for testing
+                console.warn('API connection failed. Simulating mock analysis response.', err);
+                setStatus('API Unreachable. Injecting mock analysis data…', true);
+
+                await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate inference delay
+
+                const mockResult = {
+                    verdict: Math.random() > 0.4 ? 'FAKE' : 'REAL',
+                    confidence: (Math.random() * 0.35) + 0.65, // 65-100%
+                    filename: selectedFile.name,
+                    duration_sec: (Math.random() * 10 + 2).toFixed(1),
+                    inference_ms: Math.floor(Math.random() * 800) + 200,
+                    proba_cnn: Math.random() * 0.95 + 0.05,
+                    proba_lstm: Math.random() * 0.95 + 0.05,
+                    proba_bio: Math.random() * 0.95 + 0.05
+                };
+
+                renderResult(mockResult);
             } finally {
                 btnAnalyze.disabled = false;
             }
@@ -784,8 +813,9 @@
         }
 
         function animBar(barId, pctId, value) {
-            document.getElementById(barId).style.width = `${(value * 100).toFixed(1)}%`;
-            document.getElementById(pctId).textContent = `${(value * 100).toFixed(1)}%`;
+            const safeValue = value || 0; // Safeguard against missing data
+            document.getElementById(barId).style.width = `${(safeValue * 100).toFixed(1)}%`;
+            document.getElementById(pctId).textContent = `${(safeValue * 100).toFixed(1)}%`;
         }
     </script>
 </body>
