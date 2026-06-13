@@ -151,11 +151,12 @@ def iter_synthetic(raw_dir: Path):
 
 
 def iter_asvspooof(raw_dir: Path):
-    la_root = raw_dir / "ASVspoof2019_LA"
+    la_root = raw_dir / "LA" / "LA"
+
     label_files = {
-        "train": la_root / "ASVspoof2019_LA_train" / "ASVspoof2019.LA.cm.train.trn.txt",
-        "dev":   la_root / "ASVspoof2019_LA_dev"   / "ASVspoof2019.LA.cm.dev.trl.txt",
-        "eval":  la_root / "ASVspoof2019_LA_eval"  / "ASVspoof2019.LA.cm.eval.trl.txt",
+        "train": la_root / "ASVspoof2019_LA_cm_protocols" / "ASVspoof2019.LA.cm.train.trn.txt",
+        "dev":   la_root / "ASVspoof2019_LA_cm_protocols" / "ASVspoof2019.LA.cm.dev.trl.txt",
+        "eval":  la_root / "ASVspoof2019_LA_cm_protocols" / "ASVspoof2019.LA.cm.eval.trl.txt",
     }
     audio_dirs = {
         "train": la_root / "ASVspoof2019_LA_train" / "flac",
@@ -170,8 +171,8 @@ def iter_asvspooof(raw_dir: Path):
                 parts = line.strip().split()
                 if len(parts) < 5:
                     continue
-                file_id  = parts
-                label    = 0 if parts == "bonafide" else 1
+                file_id  = parts[1]
+                label    = 0 if parts[4] == "bonafide" else 1
                 audio_path = audio_dirs[split] / f"{file_id}.flac"
                 if audio_path.exists():
                     yield audio_path, label
