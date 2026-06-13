@@ -4,6 +4,10 @@ Loads models once at startup, reuses for all requests.
 """
 
 import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+import sys
 from pathlib import Path
 from functools import lru_cache
 

@@ -9,18 +9,22 @@ Endpoints:
 Run:
   uvicorn api.main:app --reload --port 8000
 """
+import sys
+import os
+from pathlib import Path
+
+# Absolute path resolution guarantees Python registers the root workspace directory 
+# before any submodules are loaded by the interpreter.
+ROOT = Path(__file__).resolve().parent.parent
+if str(ROOT) not in sys.path:
+    sys.path.insert(0, str(ROOT))
 
 import uuid
 import time
-import sys
-from pathlib import Path
 from typing import Dict
 
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-
-ROOT = Path(__file__).parent.parent
-sys.path.insert(0, str(ROOT))
 
 from api.schemas.request  import AnalyzeResponse, ResultResponse, HealthResponse
 from api.predictor        import get_predictor
