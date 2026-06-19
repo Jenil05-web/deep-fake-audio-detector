@@ -1,6 +1,5 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
-*.py[cod]
 *$py.class
 
 # C extensions
@@ -120,7 +119,7 @@ dmypy.json
 
 # Data and models
 data/
-models/
+/models/
 logs/
 *.pkl
 *.pth
